@@ -1,0 +1,368 @@
+<title>Soul</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* Layout: one full-bleed white stage. A strong orange-red-pink haze sits in the middle and fades to white at the edges.
+   Text and Bob float above it. Bob parks in the bottom-right corner, then the menu appears in the centre. */
+:root {
+  --paper: #ffffff;
+  --ink: #4b3441;
+  --orange: #ffbe8c;
+  --ember: #ffa98a;
+  --red: #ff9ba8;
+  --pink: #ffb0d4;
+  --blush: #ffd6e4;
+  --bob: #fffaf6;
+  --bob-shade: #ffd6e2;
+  --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --ui: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease: cubic-bezier(.65, 0, .25, 1);
+  --s-center: 1.55;
+  --s-corner: .66;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--ui);
+  overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ---------- haze ---------- */
+.haze {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  opacity: 0; transition: opacity 2.6s ease;
+  pointer-events: none;
+}
+.haze.on { opacity: 1; }
+.haze-inner { position: absolute; inset: 0; transition: transform 2.4s ease; }
+.started .haze-inner { transform: scale(1.18); }
+
+.b {
+  position: absolute;
+  width: var(--w); height: var(--w);
+  left: calc(50% + var(--x) - var(--w) / 2);
+  top: calc(46% + var(--y) - var(--w) / 2);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0%, transparent 72%);
+  filter: blur(90px);
+  will-change: transform;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+.b1 { --c: var(--blush); --w: 58vmax; --x: 0vmin;   --y: 2vmin;   --dx: 4vmin;  --dy: 2vmin;  animation-duration: 16s; }
+.b2 { --c: var(--pink);  --w: 38vmax; --x: 1vmin;   --y: 10vmin;  --dx: -4vmin; --dy: 3vmin;  animation-duration: 11s; animation-delay: -6s; }
+.b3 { --c: var(--red);   --w: 36vmax; --x: 10vmin;  --y: -3vmin;  --dx: 4vmin;  --dy: -3vmin; animation-duration: 13s; animation-delay: -9s; }
+.b4 { --c: var(--orange);--w: 38vmax; --x: -10vmin; --y: -6vmin;  --dx: -3vmin; --dy: 4vmin;  animation-duration: 10s; animation-delay: -3s; }
+.b5 { --c: var(--ember); --w: 20vmax; --x: 1vmin;   --y: -2vmin;  --dx: 2vmin;  --dy: 1vmin;  animation-duration: 8s; }
+
+/* film grain over the haze */
+.grain {
+  position: fixed; inset: -80px; z-index: 1; pointer-events: none;
+  opacity: .16; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16  0 0 0 0 .06  0 0 0 0 .12  0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain .9s steps(1) infinite;
+}
+
+/* ---------- fading text ---------- */
+.lines {
+  position: fixed; inset: 0; z-index: 2;
+  display: grid; place-items: center;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+.line {
+  margin: 0; max-width: 24ch; text-align: center;
+  font-family: var(--display);
+  font-size: clamp(26px, 4.4vw, 58px); line-height: 1.1; letter-spacing: -.01em;
+  text-wrap: balance;
+  opacity: 0; filter: blur(10px); transform: translateY(10px);
+  transition: opacity 1.4s ease, filter 1.4s ease, transform 1.4s ease;
+}
+.line.in { opacity: 1; filter: blur(0); transform: none; }
+.line em { font-style: italic; }
+.line .second { display: block; margin-top: .7em; }
+.line u { text-decoration-thickness: .05em; text-underline-offset: .14em; }
+
+/* ---------- Bob ---------- */
+.bob {
+  position: fixed; z-index: 3; pointer-events: none;
+  width: 150px;
+  left: 50%; top: 44%;
+  transform: translate(-50%, -50%) scale(var(--s-center));
+  transition: left 1.5s var(--ease), top 1.5s var(--ease), transform 1.5s var(--ease);
+}
+.bob.corner {
+  left: calc(100% - max(16px, env(safe-area-inset-right, 0px)) - 66px);
+  top: calc(100% - max(18px, env(safe-area-inset-bottom, 0px)) - 88px);
+  transform: translate(-50%, -50%) scale(var(--s-corner));
+}
+.bob svg { display: block; width: 150px; height: auto; overflow: visible; }
+.float { animation: bob-float 3.6s ease-in-out infinite alternate; }
+.pop { transform: scale(0); }
+.bob.in .pop { animation: pop .85s cubic-bezier(.3, 1.2, .5, 1) forwards; }
+.bob.shown .pop { transform: none; }
+
+.shadow { fill: var(--ink); opacity: .16; }
+.limb path { fill: none; stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; }
+.limb circle, .foot { fill: var(--bob); stroke: var(--ink); stroke-width: 3.2; }
+.body { stroke: var(--ink); stroke-width: 3.5; stroke-linejoin: round; }
+.curl { fill: none; stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; }
+.cheek { fill: var(--pink); opacity: .45; }
+.eye { fill: var(--ink); transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
+.mouth { fill: none; stroke: var(--ink); stroke-width: 3.2; stroke-linecap: round; }
+.arm-r { transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+.bob.wave .arm-r { transform: rotate(-120deg); }
+.bob.wave .wiggle { animation: wiggle .5s ease-in-out infinite alternate; }
+
+.say {
+  position: fixed; z-index: 3; left: 50%; top: calc(44% + 182px);
+  transform: translate(-50%, 8px);
+  margin: 0; width: max-content; max-width: min(26ch, 88vw); text-align: center;
+  font-family: var(--display); font-style: italic;
+  font-size: clamp(19px, 2.3vw, 30px); line-height: 1.2; text-wrap: balance;
+  opacity: 0; transition: opacity .9s ease, transform .9s ease;
+  pointer-events: none;
+}
+.say.in { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- menu ---------- */
+.menu {
+  position: fixed; z-index: 4; left: 50%; top: 50%;
+  display: flex; flex-direction: column; align-items: center; gap: clamp(20px, 4vh, 40px);
+  transform: translate(-50%, calc(-50% + 14px)) scale(.94);
+  opacity: 0; visibility: hidden;
+  transition: opacity .7s ease, transform .9s cubic-bezier(.2, 1.3, .4, 1), visibility 0s linear .9s;
+}
+.menu.show {
+  opacity: 1; visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  transition-delay: 0s;
+}
+.title {
+  margin: 0; font-family: var(--display); font-weight: 400;
+  font-size: clamp(84px, 17vw, 180px); line-height: .8; letter-spacing: -.03em;
+  text-shadow: 0 0 .1em rgba(255, 155, 168, .6), 0 0 .38em rgba(255, 190, 140, .5);
+}
+.start {
+  font-family: var(--display); font-style: italic; font-size: 24px; line-height: 1;
+  color: #fff; background: var(--ink);
+  border: 0; border-radius: 999px; padding: 16px 48px 18px; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 14px 30px -12px rgba(42, 15, 30, .6);
+  transition: transform .25s ease, background .25s ease, box-shadow .25s ease;
+}
+.start:hover { background: var(--red); transform: translateY(-2px); box-shadow: 0 18px 34px -12px rgba(255, 46, 77, .7); }
+.start:active { transform: translateY(0) scale(.98); }
+.start:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }
+
+/* ---------- after start ---------- */
+.note {
+  position: fixed; z-index: 4;
+  right: calc(max(16px, env(safe-area-inset-right, 0px)) + 120px);
+  bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) + 62px);
+  margin: 0; max-width: calc(100vw - 170px);
+  background: #fff; color: var(--ink);
+  font-family: var(--display); font-style: italic; font-size: 26px; line-height: 1.15;
+  padding: 14px 22px 16px; border-radius: 22px 22px 6px 22px;
+  box-shadow: 0 14px 34px -14px rgba(42, 15, 30, .45);
+  opacity: 0; transform: translateY(10px) scale(.96); transform-origin: bottom right;
+  transition: opacity .6s ease .5s, transform .7s cubic-bezier(.2, 1.3, .4, 1) .5s;
+  pointer-events: none;
+}
+.note.show { opacity: 1; transform: none; }
+
+/* ---------- controls ---------- */
+.ghost {
+  position: fixed; z-index: 6;
+  top: max(16px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  font-family: var(--ui); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink); background: transparent; border: 0; padding: 8px 4px; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px;
+}
+.ghost:hover { text-decoration-thickness: 2px; }
+.ghost:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.instant, .instant * { transition: none !important; }
+
+@keyframes drift {
+  from { transform: translate(calc(var(--dx) * -2.4), calc(var(--dy) * -2.4)) scale(.9); }
+  to   { transform: translate(calc(var(--dx) * 2.4), calc(var(--dy) * 2.4)) scale(1.2); }
+}
+@keyframes pop {
+  0%   { transform: scale(0) rotate(-8deg); }
+  55%  { transform: scale(1.14) rotate(3deg); }
+  78%  { transform: scale(.96) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes wiggle { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+@keyframes bob-float { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes grain {
+  0% { transform: translate(0, 0); } 25% { transform: translate(-60px, 40px); }
+  50% { transform: translate(30px, -70px); } 75% { transform: translate(-40px, -30px); }
+}
+
+@media (max-width: 520px) {
+  :root { --s-center: 1.15; }
+  .say { top: calc(44% + 150px); }
+  .start { font-size: 26px; padding: 14px 46px 16px; }
+  .note { font-size: 22px; max-width: calc(100vw - 150px); right: calc(max(16px, env(safe-area-inset-right, 0px)) + 104px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b, .grain, .float, .wiggle, .eye { animation: none !important; }
+  .line, .say { filter: none; transform: none; }
+  .say { transform: translate(-50%, 0); }
+  .bob.in .pop { animation: none; transform: none; }
+  .bob { transition-duration: .01s; }
+}
+</style>
+
+<div class="haze" id="haze" aria-hidden="true">
+  <div class="haze-inner">
+    <i class="b b1"></i><i class="b b2"></i><i class="b b3"></i><i class="b b4"></i><i class="b b5"></i>
+  </div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="lines"><p id="line" class="line" aria-live="polite"></p></div>
+
+<div id="bob" class="bob" aria-hidden="true">
+  <div class="float"><div class="pop">
+    <svg viewBox="0 -12 120 156" width="150" height="195" focusable="false">
+      <defs>
+        <radialGradient id="bobfill" cx="40%" cy="30%" r="85%">
+          <stop offset="0" style="stop-color:var(--bob)"/>
+          <stop offset="1" style="stop-color:var(--bob-shade)"/>
+        </radialGradient>
+      </defs>
+      <ellipse class="shadow" cx="60" cy="136" rx="27" ry="5"/>
+      <g class="limb" transform="translate(27 86) scale(-1 1)"><path d="M0 0 Q12 6 16 22"/><circle cx="16" cy="22" r="5.2"/></g>
+      <ellipse class="foot" cx="47" cy="131" rx="9" ry="5"/>
+      <ellipse class="foot" cx="73" cy="131" rx="9" ry="5"/>
+      <path class="body" fill="url(#bobfill)" d="M60 10 C60 10 94 44 94 84 C94 112 80 128 60 128 C40 128 26 112 26 84 C26 44 60 10 60 10 Z"/>
+      <path class="curl" d="M60 11 C57 1 66 -3 69 -9"/>
+      <ellipse class="cheek" cx="40" cy="91" rx="6" ry="4"/>
+      <ellipse class="cheek" cx="80" cy="91" rx="6" ry="4"/>
+      <ellipse class="eye" cx="49" cy="80" rx="3.6" ry="4.6"/>
+      <ellipse class="eye" cx="71" cy="80" rx="3.6" ry="4.6"/>
+      <path class="mouth" d="M52 93 Q60 101 68 93"/>
+      <g transform="translate(93 86)"><g class="limb arm-r"><g class="wiggle"><path d="M0 0 Q12 6 16 22"/><circle cx="16" cy="22" r="5.2"/></g></g></g>
+    </svg>
+  </div></div>
+</div>
+
+<p id="say" class="say" aria-live="polite"></p>
+
+<main id="menu" class="menu">
+  <h1 class="title">soul</h1>
+  <button id="start" class="start" type="button">open davinci resolve</button>
+</main>
+
+<p id="note" class="note">opening davinci resolve&hellip;</p>
+
+<button id="ghost" class="ghost" type="button">skip</button>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var body = document.body;
+  var haze = $('haze'), bob = $('bob'), line = $('line'), say = $('say');
+  var menu = $('menu'), note = $('note'), ghost = $('ghost'), startBtn = $('start');
+  var gen = 0;
+
+  var LINES = [
+    ['what is art, what is <u>media</u>, if not souls?<span class="second">we <em>all</em> have stories to tell.</span>', 5200]
+  ];
+
+  function wait(ms, my) {
+    return new Promise(function (res) { setTimeout(function () { res(my === gen); }, ms); });
+  }
+  function show(node, html) {
+    node.classList.remove('in');
+    node.innerHTML = html;
+    void node.offsetWidth;
+    node.classList.add('in');
+  }
+  function hide(node) { node.classList.remove('in'); }
+
+  function reset() {
+    body.classList.remove('started', 'instant');
+    bob.classList.remove('in', 'shown', 'wave', 'corner');
+    menu.classList.remove('show');
+    note.classList.remove('show');
+    hide(line); hide(say);
+    line.innerHTML = ''; say.innerHTML = '';
+  }
+
+  function showMenu() {
+    menu.classList.add('show');
+    ghost.textContent = 'replay';
+    try { startBtn.focus({ preventScroll: true }); } catch (e) {}
+  }
+
+  function jumpToMenu() {
+    gen++;
+    reset();
+    body.classList.add('instant');
+    haze.classList.add('on');
+    bob.classList.add('shown', 'corner');
+    showMenu();
+    void body.offsetWidth;
+    requestAnimationFrame(function () { body.classList.remove('instant'); });
+  }
+
+  async function play() {
+    var my = ++gen;
+    reset();
+    ghost.textContent = 'skip';
+    haze.classList.add('on');
+    if (!await wait(1600, my)) return;
+
+    for (var i = 0; i < LINES.length; i++) {
+      show(line, LINES[i][0]);
+      if (!await wait(1400 + LINES[i][1], my)) return;
+      hide(line);
+      if (!await wait(1500, my)) return;
+    }
+
+    bob.classList.add('in');
+    if (!await wait(900, my)) return;
+    bob.classList.add('wave');
+    if (!await wait(400, my)) return;
+
+    show(say, '“hi! i’m bob.”');
+    if (!await wait(2500, my)) return;
+    hide(say);
+    if (!await wait(900, my)) return;
+
+    show(say, '“i heard you wanted to learn video editing…”');
+    if (!await wait(3800, my)) return;
+    hide(say);
+    if (!await wait(900, my)) return;
+
+    bob.classList.remove('wave');
+    bob.classList.add('corner');
+    if (!await wait(1700, my)) return;
+    showMenu();
+  }
+
+  ghost.addEventListener('click', function () {
+    if (ghost.textContent === 'skip') { jumpToMenu(); return; }
+    if (location.hash) location.hash = '';
+    play();
+  });
+
+  startBtn.addEventListener('click', function () {
+    body.classList.add('started');
+    menu.classList.remove('show');
+    note.classList.add('show');
+  });
+
+  if (location.hash === '#menu') jumpToMenu(); else play();
+})();
+</script>
